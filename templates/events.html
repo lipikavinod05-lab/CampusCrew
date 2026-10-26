@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "macros.html" import ticket %}
+{% block title %}Events · CampusCrew{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Events</h1><p class="muted">{{ events|length }} event{{ '' if events|length == 1 else 's' }} shown. Open one to assign volunteers and mark attendance.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('add_event') }}">Create an event</a>
+</div>
+<nav class="chips" aria-label="Filter by club">
+  <a class="chip {{ 'on' if not selected_club }}" href="{{ url_for('events') }}">All clubs</a>
+  {% for club in clubs %}<a class="chip {{ 'on' if selected_club == club.club_id|string }}" href="{{ url_for('events', club=club.club_id) }}">{{ club.club_name }}</a>{% endfor %}
+</nav>
+<div class="ticket-grid">
+  {% for event in events %}{{ ticket(event) }}
+  {% else %}<div class="empty"><strong>No events found</strong><p>Create an event, or pick a different club.</p><a class="btn btn-primary" href="{{ url_for('add_event') }}">Create an event</a></div>{% endfor %}
+</div>
+{% endblock %}

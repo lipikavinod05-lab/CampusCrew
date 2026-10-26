@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}CampusCrew · {{ college }}{% endblock %}</title>
+    <script>
+      try {
+        var t = localStorage.getItem('cc-theme') ||
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = t;
+        document.documentElement.classList.add('js');
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topnav">
+    <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark" aria-hidden="true"></span>CampusCrew</a>
+    <nav class="nav" aria-label="Main">
+        <a href="{{ url_for('dashboard') }}" {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+        <a href="{{ url_for('clubs') }}" {% if request.endpoint == 'clubs' %}aria-current="page"{% endif %}>Clubs</a>
+        <a href="{{ url_for('events') }}" {% if request.endpoint in ['events','add_event','event_detail'] %}aria-current="page"{% endif %}>Events</a>
+        <a href="{{ url_for('volunteers') }}" {% if request.endpoint in ['volunteers','add_volunteer'] %}aria-current="page"{% endif %}>Volunteers</a>
+        <a href="{{ url_for('reports') }}" {% if request.endpoint == 'reports' %}aria-current="page"{% endif %}>Reports</a>
+    </nav>
+    <div class="college" title="{{ college_full }}">
+        {% set cl = college_logo() %}
+        {% if cl %}<img class="college-logo" src="{{ cl }}" alt="">{% else %}<span class="college-mark" aria-hidden="true">IIIT</span>{% endif %}
+        <span class="college-name">{{ college }}</span>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme"><span class="half" aria-hidden="true"></span>Theme</button>
+</header>
+<main class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack" role="status">
+          {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+<footer class="footer"><span>CampusCrew at {{ college_full }}</span><span>Made by students, for every club event</span></footer>
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('cc-theme', next); } catch (e) {}
+  });
+  if (reduce) { document.documentElement.classList.remove('js'); return; }
+
+  // Reveal sections as they scroll into view, staggered within each group.
+  var targets = document.querySelectorAll('.stats > div, .feature, .ticket, .club-card, .role, .panel, .shortcuts a, .tile, .form-card');
+  var seen = new Map();
+  targets.forEach(function (el) {
+    var parent = el.parentElement, i = seen.get(parent) || 0;
+    seen.set(parent, i + 1);
+    el.style.setProperty('--d', Math.min(i, 7) * 0.07 + 's');
+    el.classList.add('rv');
+  });
+  // Count-up numbers
+  function countUp(el) {
+    var target = parseInt(el.textContent, 10);
+    if (isNaN(target) || target === 0) return;
+    var start = performance.now(), dur = 1100;
+    (function tick(now) {
+      var t = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * e);
+      if (t < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      var el = en.target; io.unobserve(el);
+      el.classList.add('in');
+      var n = el.querySelector('b'); if (n && el.parentElement.classList.contains('stats')) countUp(n);
+      setTimeout(function () { el.classList.remove('rv', 'in'); el.style.removeProperty('--d'); }, 1100);
+    });
+  }, { threshold: 0.12 });
+  targets.forEach(function (el) { io.observe(el); });
+
+  // Photo collage follows the pointer a little.
+  var collage = document.querySelector('.collage');
+  if (collage) {
+    window.addEventListener('pointermove', function (e) {
+      collage.style.setProperty('--mx', (e.clientX / window.innerWidth - 0.5).toFixed(3));
+      collage.style.setProperty('--my', (e.clientY / window.innerHeight - 0.5).toFixed(3));
+    });
+  }
+
+  // Confetti when something succeeds (event created, volunteer saved...).
+  if (document.querySelector('.flash.success')) {
+    var colors = ['#2A4BFF', '#FF4F9A', '#FFC21A', '#19C7A0', '#FF6B3D', '#7B5CFF'];
+    for (var i = 0; i < 46; i++) {
+      var c = document.createElement('i');
+      c.className = 'confetti';
+      c.style.background = colors[i % colors.length];
+      c.style.left = (35 + Math.random() * 30) + 'vw';
+      document.body.appendChild(c);
+      c.animate([
+        { transform: 'translate(0,0) rotate(0)', opacity: 1 },
+        { transform: 'translate(' + ((Math.random() - 0.5) * 70) + 'vw,' + (60 + Math.random() * 40) + 'vh) rotate(' + (Math.random() * 720) + 'deg)', opacity: 0 }
+      ], { duration: 1400 + Math.random() * 1000, easing: 'cubic-bezier(.2,.7,.3,1)', delay: Math.random() * 200 })
+        .onfinish = (function (el) { return function () { el.remove(); }; })(c);
+    }
+  }
+})();
+</script>
+</body>
+</html>

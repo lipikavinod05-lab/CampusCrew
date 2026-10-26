@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Add volunteer · CampusCrew{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Add a volunteer</h1><p class="muted">Register a student once, then assign them to events.</p></div>
+  <a class="btn btn-light" href="{{ url_for('volunteers') }}">Back to volunteers</a>
+</div>
+<form method="post" class="form-card narrow">
+  <h2>Student details</h2><p class="form-intro">Name and roll number are required.</p>
+  <div class="form-grid">
+    <div class="form-group full"><label for="name">Full name</label><input id="name" name="name" required maxlength="100" value="{{ request.form.get('name','') }}" placeholder="Student's full name"></div>
+    <div class="form-group full"><label for="roll_no">Roll number</label><input id="roll_no" name="roll_no" required maxlength="30" value="{{ request.form.get('roll_no','') }}" placeholder="e.g. 25BCS001"><span class="field-help">Must be unique. Use the student's official roll number.</span></div>
+    <div class="form-group"><label for="email">Email <span class="optional">Optional</span></label><input id="email" type="email" name="email" maxlength="120" value="{{ request.form.get('email','') }}" placeholder="student@example.com"></div>
+    <div class="form-group"><label for="phone">Phone <span class="optional">Optional</span></label><input id="phone" name="phone" maxlength="20" value="{{ request.form.get('phone','') }}"></div>
+  </div>
+  <div class="form-actions"><a class="btn btn-light" href="{{ url_for('volunteers') }}">Cancel</a><button class="btn btn-primary" type="submit">Save volunteer</button></div>
+</form>
+{% endblock %}

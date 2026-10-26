@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "macros.html" import photo %}
+{% block title %}{{ event.event_name }} · CampusCrew{% endblock %}
+{% block content %}
+<section class="event-hero tone-{{ event.club_id % 6 }}">
+  <div class="event-hero-bg" aria-hidden="true">{{ photo(event.event_id, event.club_id, event.club_name) }}</div>
+  <a class="btn btn-light btn-small back" href="{{ url_for('events') }}">All events</a>
+  <div class="event-hero-body">
+    <span class="club-tag">{{ event.club_name }}</span>
+    <h1>{{ event.event_name }}</h1>
+    <div class="event-meta"><span>{{ event.event_date|datefmt }}</span><span>{{ event.start_time|timefmt }} to {{ event.end_time|timefmt }}</span><span>{{ event.venue }}</span></div>
+  </div>
+</section>
+
+{% if event.description %}<p class="description">{{ event.description }}</p>{% endif %}
+
+<div class="role-grid">
+{% for role in roles %}
+  {% set kind = 'tech' if role.role_name.startswith('Tech') else ('art' if role.role_name.startswith('Art') else 'pr') %}
+  {% set pct = [100, ((role.assigned_count * 100 / role.required_count)|int)]|min %}
+  <section class="role role--{{ kind }}">
+    <h2>{{ role.role_name }}</h2>
+    <div class="role-count">{{ role.assigned_count }}<span> / {{ role.required_count }}</span></div>
+    <div class="meter" role="img" aria-label="{{ role.assigned_count }} of {{ role.required_count }} volunteers assigned"><i style="width: {{ pct }}%"></i></div>
+    {% if volunteers and role.assigned_count < role.required_count %}
+    <form class="assign-form" method="post" action="{{ url_for('assign_volunteer', event_id=event.event_id) }}">
+      <input type="hidden" name="role_id" value="{{ role.role_id }}">
+      <label for="vol-{{ role.role_id }}">Assign a volunteer</label>
+      <div class="assign-row">
+        <select id="vol-{{ role.role_id }}" name="volunteer_id" required>
+          <option value="">Select a student</option>
+          {% for v in volunteers %}<option value="{{ v.volunteer_id }}">{{ v.name }} ({{ v.roll_no }})</option>{% endfor %}
+        </select>
+        <button class="btn btn-primary btn-small" type="submit">Assign</button>
+      </div>
+    </form>
+    {% elif not volunteers %}<p class="hint">Register volunteers before assigning them.</p>
+    {% else %}<p class="success-note">This role is fully staffed.</p>{% endif %}
+  </section>
+{% endfor %}
+</div>
+
+<section class="panel">
+  <div class="panel-head"><div><h2>Volunteer roster</h2><p>{{ assignments|length }} assigned. Update attendance and hours after the event.</p></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Volunteer</th><th>Role</th><th>Attendance</th><th>Hours</th><th>Update</th></tr></thead>
+    <tbody>
+    {% for a in assignments %}
+      <tr>
+        <td><span class="table-primary">{{ a.name }}</span><small class="table-sub">{{ a.roll_no }}</small></td>
+        <td>{{ a.role_name }}</td>
+        <td><span class="status-pill {{ a.attendance|lower|replace(' ','-') }}">{{ a.attendance }}</span></td>
+        <td>{{ a.hours_worked }}</td>
+        <td>
+          <form class="attendance-form" method="post" action="{{ url_for('attendance', assignment_id=a.assignment_id) }}">
+            <input type="hidden" name="event_id" value="{{ event.event_id }}">
+            <select name="attendance" aria-label="Attendance">
+              <option {% if a.attendance=='Not Marked' %}selected{% endif %}>Not Marked</option>
+              <option {% if a.attendance=='Present' %}selected{% endif %}>Present</option>
+              <option {% if a.attendance=='Absent' %}selected{% endif %}>Absent</option>
+            </select>
+            <input type="number" name="hours_worked" min="0" max="24" step="0.25" value="{{ a.hours_worked }}" aria-label="Hours worked">
+            <button class="btn btn-light btn-small" type="submit">Save</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5"><div class="empty"><strong>No volunteers assigned yet</strong><p>Use the role cards above to assign registered students.</p><a class="text-link" href="{{ url_for('add_volunteer') }}">Register a volunteer</a></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

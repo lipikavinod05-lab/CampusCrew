@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong · CampusCrew{% endblock %}
+{% block content %}
+<div class="empty" style="border:1.5px dashed var(--edge);border-radius:6px">
+  <strong>Something went wrong</strong>
+  <p>Check the Flask terminal for the full error, then confirm MySQL is running and schema.sql has been loaded.</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+</div>
+{% endblock %}

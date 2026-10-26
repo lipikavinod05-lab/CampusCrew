@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Volunteers · CampusCrew{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Volunteers</h1><p class="muted">Register students once and track every event they help with.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('add_volunteer') }}">Add a volunteer</a>
+</div>
+<section class="panel">
+  <div class="panel-head">
+    <div><h2>Directory</h2><p>{{ volunteers|length }} volunteer{{ '' if volunteers|length == 1 else 's' }} shown</p></div>
+    <form method="get" class="search-form"><input type="search" name="q" value="{{ q }}" placeholder="Search name, roll number or email" aria-label="Search volunteers"><button class="btn btn-light" type="submit">Search</button></form>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Roll number</th><th>Email</th><th>Phone</th><th>Assignments</th><th>Hours</th></tr></thead>
+    <tbody>
+    {% for v in volunteers %}
+      <tr>
+        <td><span class="person tone-{{ loop.index0 % 6 }}"><span class="avatar">{{ v.name[:1]|upper }}</span>{{ v.name }}</span></td>
+        <td>{{ v.roll_no }}</td><td>{{ v.email or '—' }}</td><td>{{ v.phone or '—' }}</td>
+        <td>{{ v.assignments_count }}</td><td><strong>{{ v.total_hours }}</strong></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6"><div class="empty"><strong>No volunteers yet</strong><p>Add students before assigning them to event roles.</p><a class="btn btn-primary" href="{{ url_for('add_volunteer') }}">Add a volunteer</a></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

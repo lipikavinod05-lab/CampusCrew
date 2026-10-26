@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Reports · CampusCrew{% endblock %}
+{% block content %}
+{% set max_h = (top_volunteers|map(attribute='total_hours')|map('float')|max) if top_volunteers else 0 %}
+<div class="page-head"><div><h1>Reports</h1><p class="muted">How each event went, and who is putting in the hours.</p></div></div>
+
+<section class="panel">
+  <div class="panel-head"><div><h2>Event summary</h2><p>Assignments, attendance and hours by event</p></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Event</th><th>Club</th><th>Date</th><th>Assigned</th><th>Present</th><th>Hours</th></tr></thead>
+    <tbody>
+    {% for r in summary %}
+      <tr><td><a class="table-primary" href="{{ url_for('event_detail', event_id=r.event_id) }}">{{ r.event_name }}</a></td><td>{{ r.club_name }}</td><td>{{ r.event_date|datefmt }}</td><td>{{ r.assigned_count }}</td><td>{{ r.present_count or 0 }}</td><td><strong>{{ r.total_hours }}</strong></td></tr>
+    {% else %}
+      <tr><td colspan="6"><div class="empty"><strong>No event data yet</strong><p>Reports fill in as events are created and volunteers are assigned.</p></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><div><h2>Top volunteers</h2><p>The 10 students with the most hours</p></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Rank</th><th>Volunteer</th><th>Roll number</th><th>Assignments</th><th>Total hours</th></tr></thead>
+    <tbody>
+    {% for v in top_volunteers %}
+      <tr>
+        <td><span class="rank">{{ loop.index }}</span></td><td><strong>{{ v.name }}</strong></td><td>{{ v.roll_no }}</td><td>{{ v.assignment_count }}</td>
+        <td><span class="hours"><span class="bar"><i style="width: {{ ((v.total_hours|float / max_h * 100)|round|int) if max_h else 0 }}%"></i></span>{{ v.total_hours }}</span></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5"><div class="empty"><strong>No volunteers yet</strong><p>Register students to see who contributes the most.</p></div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

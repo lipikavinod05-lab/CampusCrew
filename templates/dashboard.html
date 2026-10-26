@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% from "macros.html" import ticket, photo, stub, crew, emblem %}
+{% block title %}Dashboard · CampusCrew · {{ college }}{% endblock %}
+{% block content %}
+{% set pics = hero_photos() %}
+<section class="hero">
+  <div class="deco" aria-hidden="true">
+    <span class="beam beam-a"></span><span class="beam beam-b"></span>
+    <svg class="deco-star" viewBox="0 0 48 48"><path d="M24 2 29 19 46 24 29 29 24 46 19 29 2 24 19 19Z" fill="var(--sun)" stroke="var(--edge)" stroke-width="2"/></svg>
+    <svg class="deco-ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="var(--blue)" stroke-width="8"/></svg>
+    <svg class="deco-zig" viewBox="0 0 120 24"><path d="M2 20 17 4 32 20 47 4 62 20 77 4 92 20 107 4 118 16" fill="none" stroke="var(--pink)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg class="deco-plus" viewBox="0 0 40 40"><path d="M20 4v32M4 20h32" stroke="var(--mint)" stroke-width="8" stroke-linecap="round"/></svg>
+  </div>
+  <div class="hero-text">
+    <h1><span class="line"><span>Every event</span></span><span class="line"><span>needs a</span></span><span class="line"><span>crew.</span></span></h1>
+    <p>Plan events for every club at {{ college }}, split them into Tech, Art and PR roles, and fill every spot with volunteers.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('add_event') }}">Create an event</a>
+      <a class="btn btn-light" href="{{ url_for('add_volunteer') }}">Add a volunteer</a>
+    </div>
+  </div>
+  <div class="collage" aria-hidden="true">
+    {% for i in range(3) %}
+    <figure class="snap snap-{{ i }}">
+      {% if pics[i] is defined %}<img src="{{ pics[i] }}" alt="">
+      {% else %}<div class="art tone-{{ i }}"><b>{{ ['T','A','P'][i] }}</b></div>{% endif %}
+    </figure>
+    {% endfor %}
+    <svg class="stamp" viewBox="0 0 160 160">
+      <defs><path id="ring" d="M80 80m-60 0a60 60 0 1 1 120 0a60 60 0 1 1-120 0"/></defs>
+      <circle cx="80" cy="80" r="77" fill="var(--sun)" stroke="#17162B" stroke-width="2.5"/>
+      <circle cx="80" cy="80" r="44" fill="none" stroke="#17162B" stroke-width="1.5" stroke-dasharray="3 5"/>
+      <text font-family="var(--body)" font-size="14" font-weight="800" fill="#17162B"><textPath href="#ring" textLength="368" lengthAdjust="spacing">IIIT KOTTAYAM • CAMPUS CREW • IIIT KOTTAYAM • </textPath></text>
+      <path d="M80 56 85 75 104 80 85 85 80 104 75 85 56 80 75 75Z" fill="#17162B"/>
+    </svg>
+  </div>
+</section>
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track">
+  {% for rep in range(2) %}{% for name in club_names() %}<span>{{ name }}<svg viewBox="0 0 24 24"><path d="M12 1 14.6 9.4 23 12 14.6 14.6 12 23 9.4 14.6 1 12 9.4 9.4Z" fill="currentColor"/></svg></span>{% endfor %}<span>{{ college }}<svg viewBox="0 0 24 24"><path d="M12 1 14.6 9.4 23 12 14.6 14.6 12 23 9.4 14.6 1 12 9.4 9.4Z" fill="currentColor"/></svg></span>{% endfor %}
+</div></div>
+
+<div class="stats">
+  <div><b>{{ stats.volunteers }}</b><span>volunteers registered</span></div>
+  <div><b>{{ stats.clubs }}</b><span>clubs</span></div>
+  <div><b>{{ stats.events }}</b><span>events created</span></div>
+  <div><b>{{ stats.assignments }}</b><span>crew spots filled</span></div>
+</div>
+
+{% if upcoming %}
+  {% set f = upcoming[0] %}
+  <section class="section">
+    <div class="section-head"><h2>{{ 'Next up' if is_upcoming else 'Latest event' }}</h2><a class="text-link" href="{{ url_for('events') }}">See all events</a></div>
+    <article class="feature tone-{{ f.club_id % 6 }}">
+      <a class="feature-photo" href="{{ url_for('event_detail', event_id=f.event_id) }}" tabindex="-1" aria-hidden="true">{{ photo(f.event_id, f.club_id, f.club_name) }}{{ stub(f.event_date) }}</a>
+      <div class="feature-body">
+        <span class="club-tag">{{ f.club_name }}</span>
+        <h3>{{ f.event_name }}</h3>
+        <p class="feature-when">{{ f.event_date|datefmt }}, {{ f.start_time|timefmt }} to {{ f.end_time|timefmt }}</p>
+        <p>{{ f.venue }}</p>
+        {{ crew(f.assigned_count, f.required_count) }}
+        <a class="btn btn-primary" href="{{ url_for('event_detail', event_id=f.event_id) }}">Manage crew</a>
+      </div>
+    </article>
+  </section>
+  {% if upcoming|length > 1 %}
+  <section class="section">
+    <div class="section-head"><h2>{{ 'Also coming up' if is_upcoming else 'Before that' }}</h2></div>
+    <div class="ticket-grid">{% for e in upcoming[1:] %}{{ ticket(e) }}{% endfor %}</div>
+  </section>
+  {% endif %}
+{% else %}
+  <section class="section"><div class="empty" style="border:1.5px dashed var(--edge);border-radius:6px"><strong>No events yet</strong><p>Create the first event for one of your clubs and its crew roles are set up automatically.</p><a class="btn btn-primary" href="{{ url_for('add_event') }}">Create an event</a></div></section>
+{% endif %}
+
+{% set gp = gallery_photos() %}
+<section class="section">
+  <div class="section-head"><h2>{{ 'Around campus' if gp else 'The clubs' }}</h2><a class="text-link" href="{{ url_for('clubs') }}">All clubs</a></div>
+  <div class="strip"><div class="strip-track">
+    {% set items = (gp * ((8 // gp|length) + 1)) if gp else club_names() %}
+    {% for rep in range(2) %}{% for it in items %}
+      {% if gp %}<figure class="tile"><img src="{{ it }}" alt="" loading="lazy"></figure>
+      {% else %}<div class="tile tile-club tone-{{ loop.index0 % 6 }}"><span class="club-badge">{{ emblem(it) }}</span><b>{{ it }}</b></div>{% endif %}
+    {% endfor %}{% endfor %}
+  </div></div>
+</section>
+
+<section class="section">
+  <div class="shortcuts">
+    <a href="{{ url_for('add_event') }}"><h3>Create an event</h3><p>Pick a club, set the date, and choose how many volunteers each role needs.</p></a>
+    <a href="{{ url_for('add_volunteer') }}"><h3>Add a volunteer</h3><p>Register a student once, then assign them to any event.</p></a>
+    <a href="{{ url_for('reports') }}"><h3>See reports</h3><p>Check attendance and hours by event and by volunteer.</p></a>
+  </div>
+</section>
+{% endblock %}

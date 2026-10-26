@@ -1,0 +1,50 @@
+{# Reusable pieces: event photo (or generated poster art), date stub, crew meter, ticket card #}
+{% macro photo(event_id, club_id, club_name) -%}
+  {%- set src = event_image(event_id) -%}
+  {%- if src -%}
+    <img class="photo-fill" src="{{ src }}" alt="" loading="lazy">
+  {%- else -%}
+    <div class="art tone-{{ club_id % 6 }}" aria-hidden="true"><b>{{ club_name[:1] }}</b></div>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro stub(d) -%}
+  <span class="stub"><b>{{ d.strftime('%d') }}</b>{{ d.strftime('%b') }}</span>
+{%- endmacro %}
+
+{% macro crew(assigned, required) -%}
+  {%- set pct = [100, ((assigned * 100 / required)|int)]|min if required else 0 -%}
+  <div class="crew">
+    <div class="meter" role="img" aria-label="{{ assigned }} of {{ required }} crew spots filled"><i style="width: {{ pct }}%"></i></div>
+    <span>{{ assigned }} of {{ required }} crew spots filled</span>
+  </div>
+{%- endmacro %}
+
+{% macro ticket(event) -%}
+<article class="ticket tone-{{ event.club_id % 6 }}">
+  <div class="ticket-photo">{{ photo(event.event_id, event.club_id, event.club_name) }}{{ stub(event.event_date) }}</div>
+  <div class="ticket-body">
+    <span class="club-tag">{{ event.club_name }}</span>
+    <h3><a href="{{ url_for('event_detail', event_id=event.event_id) }}">{{ event.event_name }}</a></h3>
+    <p class="ticket-meta">{{ event.start_time|timefmt }} to {{ event.end_time|timefmt }} at {{ event.venue }}</p>
+    {{ crew(event.assigned_count, event.required_count) }}
+  </div>
+</article>
+{%- endmacro %}
+
+{# Club emblem: a small line-drawn SVG per club, used until a real logo file exists #}
+{% macro emblem(name) -%}
+{%- set n = name|lower -%}
+<svg class="emblem" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{%- if 'trendles' in n -%}<path d="M24 5 28 20 43 24 28 28 24 43 20 28 5 24 20 20Z"/>
+{%- elif 'wildbeats' in n -%}<path d="M9 20v8M16 12v24M24 6v36M32 14v20M39 21v6"/>
+{%- elif 'gdg' in n -%}<path d="M17 13 6 24l11 11M31 13l11 11-11 11"/><path d="M27 10 21 38"/>
+{%- elif 'coders' in n -%}<path d="M20 7c-6 0-6 3-6 7v5c0 3-2 5-5 5 3 0 5 2 5 5v5c0 4 0 7 6 7M28 7c6 0 6 3 6 7v5c0 3 2 5 5 5-3 0-5 2-5 5v5c0 4 0 7-6 7"/>
+{%- elif 'beta' in n -%}<path d="M19 6h10M21 6v14L9 39c-1 3 1 4 3 4h24c2 0 4-1 3-4L27 20V6"/><path d="M14 31h20"/>
+{%- elif 'cyber' in n -%}<path d="M24 5 40 11v12c0 11-7 17-16 21-9-4-16-10-16-21V11Z"/><path d="m17 24 5 5 9-10"/>
+{%- elif 'enigma' in n -%}<path d="M3 24c8-12 34-12 42 0-8 12-34 12-42 0Z"/><circle cx="24" cy="24" r="6"/>
+{%- elif 'elix' in n -%}<path d="M24 4 41 14v20L24 44 7 34V14Z"/><circle cx="24" cy="24" r="5"/>
+{%- else -%}<circle cx="24" cy="24" r="16"/><path d="M24 14v20M14 24h20"/>
+{%- endif -%}
+</svg>
+{%- endmacro %}
